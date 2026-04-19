@@ -641,10 +641,10 @@ function App() {
 
   function renderDashboardPage(): ReactNode {
     return (
-      <section className="grid gap-4 xl:grid-cols-2">
+      <section className="grid gap-4">
         <Panel
           title="Overview snapshot"
-          description="Live values from the admin overview endpoint."
+          description="Key admin metrics for quick status checks."
           action={
             <button type="button" className={PRIMARY_BUTTON_CLASS} onClick={handleRefreshDashboard}>
               Refresh cache
@@ -652,8 +652,8 @@ function App() {
           }
         >
           {dashboardLoading ? <p className="text-sm text-slate-500">Loading dashboard...</p> : null}
-          <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
-            {heroMetrics.map(([key, value]) => (
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {heroMetrics.slice(0, 6).map(([key, value]) => (
               <article
                 key={key}
                 className="rounded-3xl border border-orange-100 bg-gradient-to-b from-orange-50 to-white p-4 shadow-sm"
@@ -665,15 +665,14 @@ function App() {
               </article>
             ))}
             {!heroMetrics.length && !dashboardLoading ? (
-              <p className="text-sm text-slate-500">No scalar metrics returned yet.</p>
+              <p className="text-sm text-slate-500">No core metrics available yet.</p>
             ) : null}
           </div>
-        </Panel>
-
-        <Panel title="Raw payload" description="Useful when the backend shape changes.">
-          <pre className="max-h-[32rem] overflow-auto rounded-3xl bg-slate-950 p-4 text-xs leading-6 text-slate-100">
-            {JSON.stringify(dashboard, null, 2)}
-          </pre>
+          {heroMetrics.length > 6 ? (
+            <p className="mt-6 text-sm text-slate-500">
+              Additional metrics are available in the admin payload but are hidden here for clarity.
+            </p>
+          ) : null}
         </Panel>
       </section>
     );
