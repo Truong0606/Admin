@@ -631,13 +631,51 @@ function App() {
     navigate('/login', { replace: true });
   }
 
-  const heroMetrics = useMemo(
-    () =>
-      Object.entries(dashboard).filter(
+  const dashboardMetrics = useMemo(() => {
+    const results: Array<[string, string | number]> = [];
+    const addMetric = (key: string, value: unknown) => {
+      if (value === undefined || value === null) {
+        return;
+      }
+      if (typeof value === 'number' || typeof value === 'string') {
+        results.push([key, value]);
+      }
+    };
+
+    addMetric('Last Updated At', dashboard.lastUpdatedAt ?? dashboard.updatedAt ?? dashboard.updated_at);
+
+    const patients = dashboard.patients as AnyRecord | undefined;
+    if (patients) {
+      addMetric('Total Patients', patients.totalPatients ?? patients.total_patients);
+      addMetric('New Patients This Month', patients.newPatientsThisMonth ?? patients.new_patients_this_month);
+      addMetric('Active Patients 7 Days', patients.activePatients7Days ?? patients.active_patients_7_days);
+      addMetric('Growth Percentage', patients.growthPercentage ?? patients.growth_percentage);
+    }
+
+    const doctors = dashboard.doctors as AnyRecord | undefined;
+    if (doctors) {
+      addMetric('Total Doctors', doctors.totalDoctors ?? doctors.total_doctors);
+      addMetric('Pending Doctors', doctors.pendingDoctors ?? doctors.pending_doctors);
+      addMetric('Active Doctors', doctors.activeDoctors ?? doctors.active_doctors);
+      addMetric('Blocked Doctors', doctors.blockedDoctors ?? doctors.blocked_doctors);
+      addMetric('Active Connections', doctors.activeConnections ?? doctors.active_connections);
+    }
+
+    const aiTracking = dashboard.aiTracking as AnyRecord | undefined;
+    if (aiTracking) {
+      addMetric('AI Requests This Month', aiTracking.totalRequestsThisMonth ?? aiTracking.total_requests_this_month);
+      addMetric('Success Rate', aiTracking.successRatePercentage ?? aiTracking.success_rate_percentage);
+      addMetric('Failed Requests', aiTracking.failedRequests ?? aiTracking.failed_requests);
+    }
+
+    if (!results.length) {
+      return Object.entries(dashboard).filter(
         ([, value]) => typeof value === 'number' || typeof value === 'string',
-      ),
-    [dashboard],
-  );
+      );
+    }
+
+    return results;
+  }, [dashboard]);
 
   function renderDashboardPage(): ReactNode {
     return (
@@ -653,7 +691,7 @@ function App() {
         >
           {dashboardLoading ? <p className="text-sm text-slate-500">Loading dashboard...</p> : null}
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {heroMetrics.slice(0, 6).map(([key, value]) => (
+            {dashboardMetrics.slice(0, 6).map(([key, value]) => (
               <article
                 key={key}
                 className="rounded-3xl border border-orange-100 bg-gradient-to-b from-orange-50 to-white p-4 shadow-sm"
@@ -664,11 +702,11 @@ function App() {
                 </strong>
               </article>
             ))}
-            {!heroMetrics.length && !dashboardLoading ? (
+            {!dashboardMetrics.length && !dashboardLoading ? (
               <p className="text-sm text-slate-500">No core metrics available yet.</p>
             ) : null}
           </div>
-          {heroMetrics.length > 6 ? (
+          {dashboardMetrics.length > 6 ? (
             <p className="mt-6 text-sm text-slate-500">
               Additional metrics are available in the admin payload but are hidden here for clarity.
             </p>
