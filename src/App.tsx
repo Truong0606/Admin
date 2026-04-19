@@ -649,7 +649,6 @@ function App() {
       addMetric('Total Patients', patients.totalPatients ?? patients.total_patients);
       addMetric('New Patients This Month', patients.newPatientsThisMonth ?? patients.new_patients_this_month);
       addMetric('Active Patients 7 Days', patients.activePatients7Days ?? patients.active_patients_7_days);
-      addMetric('Growth Percentage', patients.growthPercentage ?? patients.growth_percentage);
     }
 
     const doctors = dashboard.doctors as AnyRecord | undefined;
@@ -698,7 +697,7 @@ function App() {
               >
                 <span className="block text-sm font-medium text-slate-500">{humanizeKey(key)}</span>
                 <strong className="mt-2 block text-3xl font-semibold tracking-tight text-slate-900">
-                  {String(value)}
+                  {formatDashboardValue(key, value)}
                 </strong>
               </article>
             ))}
@@ -1396,6 +1395,27 @@ function humanizeKey(value: string): string {
     .replace(/([a-z])([A-Z])/g, '$1 $2')
     .replace(/[_-]/g, ' ')
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function formatDashboardValue(key: string, value: unknown): string {
+  if (key === 'Last Updated At') {
+    return formatDateString(String(value));
+  }
+  if (key.toLowerCase().includes('percentage') && typeof value === 'number') {
+    return `${value}%`;
+  }
+  return String(value ?? '');
+}
+
+function formatDateString(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.valueOf())) {
+    return value;
+  }
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}-${month}-${year}`;
 }
 
 function readUnknown(record: AnyRecord, keys: string[]): unknown {
